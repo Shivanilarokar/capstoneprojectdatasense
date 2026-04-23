@@ -1,0 +1,82 @@
+{
+  "question": "What supply chain risk factors are disclosed in Apple's latest 10-K?",
+  "routing": {
+    "llm_routing": {
+      "thinking": "Question explicitly asks about Apple's latest 10-K, so select Apple's document only.",
+      "selected_tickers": [
+        "AAPL"
+      ]
+    },
+    "selected_tickers": [
+      "AAPL"
+    ]
+  },
+  "answer": "The supply chain risk factors disclosed in Apple's latest 10-K include:\n\n- The Company's global supply chain is large and complex, with a majority of supplier facilities, including manufacturing and assembly sites, located outside the U.S.\n- Operations and performance depend significantly on global and regional economic conditions.\n- Adverse macroeconomic conditions (such as slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations) can adversely impact consumer demand and materially affect the supply chain.\n- Economic uncertainty can impact suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers, and other channel partners, potentially causing financial instability, inability to obtain credit, and insolvency.\n- Political events, trade and international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents, and other business interruptions can materially adversely affect the Company and its supply chain partners.\n- Restrictions on international trade, including tariffs and controls on imports or exports of goods, technology, or data, can materially adversely affect the Company's business and supply chain, especially if such restrictions apply to countries where Apple has significant revenues or supply chain operations.\n- The Company faces risks related to forecasting and ordering components and products due to market volatility, rapid technology changes, and price fluctuations, which can lead to excess or insufficient inventory and associated cancellation fees.\n- Manufacturing purchase obligations typically cover forecasted requirements up to 150 days, creating risk if forecasts are incorrect.\n\nThese factors collectively highlight risks related to economic conditions, geopolitical issues, trade restrictions, supplier stability, inventory management, and operational disruptions within Apple's supply chain.",
+  "per_document": [
+    {
+      "ticker": "AAPL",
+      "company_name": "Apple Inc.",
+      "doc_id": "pi-cmnvt9x6y0ema01qsncuzz5o5",
+      "leaf_node_ids": [
+        "0006",
+        "0007",
+        "0004"
+      ],
+      "tree_search_trace": [
+        {
+          "depth": 0,
+          "candidate_node_ids": [
+            "0005",
+            "0003",
+            "0000",
+            "0004",
+            "0001",
+            "0009",
+            "0011",
+            "0012",
+            "0048"
+          ],
+          "selected_node_ids": [
+            "0005",
+            "0004"
+          ],
+          "llm_thinking": "Supply chain risk factors are typically disclosed under Item 1A - Risk Factors sections, which specifically address risks including supply chain issues.",
+          "fallback_used": false
+        },
+        {
+          "depth": 1,
+          "candidate_node_ids": [
+            "0006",
+            "0008",
+            "0007"
+          ],
+          "selected_node_ids": [
+            "0006",
+            "0007"
+          ],
+          "llm_thinking": "Supply chain risk factors are typically operational and related to third-party dependencies, so node 0007 is most relevant; node 0006 may also cover operational challenges affecting supply chain.",
+          "fallback_used": false
+        }
+      ],
+      "evidence": [
+        {
+          "node_id": "0006",
+          "title": "Risk Factors: Macroeconomic, Geopolitical, Competitive, and Operational Challenges",
+          "selector": "5",
+          "pages_or_lines": [
+            5
+          ]
+        },
+        {
+          "node_id": "0007",
+          "title": "Operational, Intellectual Property, Third-Party, and Legal/Regulatory Risks",
+          "selector": "9",
+          "pages_or_lines": [
+            9
+          ]
+        }
+      ],
+      "retrieved_context_chars": 12095
+    }
+  ]
+}
