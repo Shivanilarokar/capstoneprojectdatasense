@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local environment and editor files
+.env
+.vscode/
+
+# Local scratch and test artifacts
+tmp/
+
+# Local Codex/npm tooling artifacts
+node_modules/
+package.json
+package-lock.json
+
+# Added by code-review-graph
+.code-review-graph/

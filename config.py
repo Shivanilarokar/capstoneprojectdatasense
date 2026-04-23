@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_ROOT = PROJECT_ROOT / "data"
+INGESTION_DATA_ROOT = DATA_ROOT / "ingestion"
+SEC_DATA_ROOT = INGESTION_DATA_ROOT / "sec"
+SEC_EDGAR_ROOT = SEC_DATA_ROOT / "edgar"
 
 
 @dataclass(frozen=True)
