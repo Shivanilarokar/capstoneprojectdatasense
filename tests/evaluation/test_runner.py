@@ -51,6 +51,9 @@ class EvaluationRunnerTests(TestCase):
         self.assertEqual(1.0, summary["provenance_coverage"])
         self.assertEqual(1.0, summary["freshness_disclosure_rate"])
         self.assertEqual(1.0, summary["sanctions_decision_explainability"])
+        self.assertIn("entity_match_precision", summary)
+        self.assertIn("graph_traversal_completeness", summary)
+        self.assertIn("geographic_accuracy", summary)
 
     @patch("evaluation.runner.run_agentic_query")
     def test_run_benchmarks_executes_selected_records(self, run_agentic_query_mock) -> None:
@@ -87,3 +90,4 @@ class EvaluationRunnerTests(TestCase):
         self.assertEqual(2, report["benchmark_count"])
         self.assertEqual(2, len(report["records"]))
         self.assertEqual(1.0, report["summary"]["route_accuracy"])
+        self.assertIn("ablations", report)

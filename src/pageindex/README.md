@@ -9,9 +9,9 @@ python .\run_pageindex_pipeline.py --question "What supply chain risk factors ar
 ```
 
 Default artifact paths:
-- `src/pageindex/pageindex_docs`
-- `src/pageindex/pageindex_workspace`
-- `src/pageindex/pageindex_rag_output`
+- `data/pageindex/docs`
+- `data/pageindex/workspace`
+- `data/pageindex/output`
 
 ## Keys
 

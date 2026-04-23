@@ -13,8 +13,6 @@ from openai import OpenAI
 
 @dataclass(frozen=True)
 class LLMConfig:
-    """Simple runtime config for OpenAI generation."""
-
     api_key: str
     model: str
 
@@ -44,7 +42,6 @@ def chat_text(
     max_retries: int = 4,
     initial_backoff_sec: float = 1.0,
 ) -> str:
-    """Generate text via OpenAI chat completions with retry/backoff."""
     if not llm.api_key:
         raise RuntimeError("OPENAI_API_KEY is required for LLM generation.")
 
@@ -75,7 +72,4 @@ def chat_json(
     temperature: float = 0.0,
     max_retries: int = 4,
 ) -> dict[str, Any]:
-    """Generate and parse JSON object with tolerant parsing."""
-    text = chat_text(llm, prompt, temperature=temperature, max_retries=max_retries)
-    return _parse_json_object(text)
-
+    return _parse_json_object(chat_text(llm, prompt, temperature=temperature, max_retries=max_retries))

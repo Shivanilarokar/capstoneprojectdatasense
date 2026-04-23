@@ -50,6 +50,7 @@ Direct route launchers:
 - `run_sanctions_query.py`
 - `run_nlsql_query.py`
 - `run_graphrag_query.py`
+- `run_graphrag_pipeline.py`
 
 Benchmark runner:
 
@@ -90,15 +91,20 @@ Scored metrics include:
 - `cross_source_completion_rate`
 - `sanctions_decision_explainability`
 - `cascading_risk_answer_success`
+- `entity_match_precision`
+- `graph_traversal_completeness`
+- `geographic_accuracy`
 
 ## Current Scope
 
 Implemented and runnable now:
 
 - PostgreSQL ingestion for OFAC/BIS, NOAA, FDA, and Comtrade
+- Neo4j graph sync pipeline from PostgreSQL + SEC sections into GraphRAG state
 - standalone `pageindex`, `sanctions`, `nlsql`, and `graphrag` routes
-- competition `fullstack` orchestration
-- benchmark runner and scoring
+- competition `fullstack` orchestration with checkpoint journaling, authz guard, parallel route execution, evidence validation, risk scoring, and compliance guard
+- benchmark runner, richer scoring, and ablation-style summary
+- structured observability artifacts under `data/observability`
 
 Future scope after the competition:
 

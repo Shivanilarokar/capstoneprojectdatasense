@@ -15,6 +15,7 @@ wheels/
 
 # Local scratch and test artifacts
 tmp/
+data/observability/
 
 # Local Codex/npm tooling artifacts
 node_modules/

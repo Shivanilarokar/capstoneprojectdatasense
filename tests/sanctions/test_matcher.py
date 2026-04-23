@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from unittest import TestCase
 
-from sanctions.matcher import extract_candidate_entities, normalize_name, parse_aliases, screen_entities
+from sanctions.matcher import (
+    extract_candidate_entities,
+    normalize_name,
+    parse_aliases,
+    screen_entities,
+)
 
 
 class SanctionsMatcherTests(TestCase):
@@ -50,3 +55,52 @@ class SanctionsMatcherTests(TestCase):
         self.assertEqual(["Globex Holdings"], result["unmatched_entities"])
         self.assertEqual([], result["matches"])
 
+    def test_screen_entities_uses_fuzzy_name_and_country_alignment(self) -> None:
+        rows = [
+            {
+                "source_entity_id": "100",
+                "primary_name": "ACME GLOBAL LTD",
+                "aliases": "",
+                "sanctions_programs": "SDN",
+                "sanctions_type": "Entity",
+                "nationality": "United Arab Emirates",
+                "citizenship": "",
+                "address_text": "Dubai, United Arab Emirates",
+            }
+        ]
+
+        result = screen_entities(
+            "Screen Acme Global Limited in the UAE",
+            rows,
+            entity_names=["Acme Global Limited"],
+            country_hints=["United Arab Emirates"],
+        )
+
+        self.assertEqual([], result["review_candidates"])
+        self.assertEqual("primary_fuzzy", result["matches"][0]["match_type"])
+        self.assertGreater(result["matches"][0]["score"], 0.9)
+
+    def test_screen_entities_routes_country_conflicts_to_review_queue(self) -> None:
+        rows = [
+            {
+                "source_entity_id": "100",
+                "primary_name": "ACME GLOBAL LTD",
+                "aliases": "",
+                "sanctions_programs": "SDN",
+                "sanctions_type": "Entity",
+                "nationality": "Russia",
+                "citizenship": "",
+                "address_text": "Moscow, Russia",
+            }
+        ]
+
+        result = screen_entities(
+            "Screen Acme Global Limited in the UAE",
+            rows,
+            entity_names=["Acme Global Limited"],
+            country_hints=["United Arab Emirates"],
+        )
+
+        self.assertEqual([], result["matches"])
+        self.assertEqual(1, len(result["review_candidates"]))
+        self.assertEqual("country_conflict", result["review_candidates"][0]["reason"])

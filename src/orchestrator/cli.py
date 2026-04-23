@@ -19,6 +19,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--tenant-id", default=None, help="Tenant ID override")
     parser.add_argument("--user-id", default="system", help="User ID for auditing")
     parser.add_argument(
+        "--role",
+        action="append",
+        default=None,
+        help="Optional role claim for authz guard. Repeat for multiple roles.",
+    )
+    parser.add_argument(
+        "--allow-pipeline",
+        action="append",
+        default=None,
+        choices=["pageindex", "sanctions", "nlsql", "graphrag", "fullstack"],
+        help="Optional allowed pipeline list for authz guard. Repeat for multiple values.",
+    )
+    parser.add_argument("--thread-id", default=None, help="Optional durable thread identifier for checkpoint traces.")
+    parser.add_argument(
         "--force-pipeline",
         default="auto",
         choices=["auto", "pageindex", "sanctions", "nlsql", "graphrag", "fullstack"],
@@ -46,6 +60,9 @@ def main() -> None:
         force_pipeline=None if args.force_pipeline == "auto" else args.force_pipeline,
         use_llm_synthesis=not args.no_llm_synthesis,
         graph_max_results=args.max_graph_results,
+        allowed_pipelines=tuple(args.allow_pipeline) if args.allow_pipeline else None,
+        user_roles=tuple(args.role) if args.role else ("analyst",),
+        thread_id=args.thread_id,
     )
     result = run_agentic_query(
         settings=settings,

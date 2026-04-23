@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from Generation.generation import LLMConfig, chat_json, chat_text
+from generation.generation import LLMConfig, chat_json, chat_text
 from config import AppConfig
 
 from .neo4j_store import Neo4jStore

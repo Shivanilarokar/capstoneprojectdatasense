@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import operator
 from typing import Any
 
 from config import AppConfig
+from typing import Annotated
 from typing_extensions import TypedDict
 
 
@@ -38,6 +40,12 @@ class OrchestratorState(TypedDict, total=False):
     settings: AppConfig
     user_id: str
     options: Any
+    correlation_id: str
+    query_id: str
+    checkpoint_log_path: str
+    trace_log_path: str
+    trace: dict[str, Any]
+    authz: dict[str, Any]
     route_plan: RoutePlan
     selected_pipeline: str
     graph_routes_hint: list[str]
@@ -46,4 +54,9 @@ class OrchestratorState(TypedDict, total=False):
     routes_executed: list[str]
     completed_routes: list[str]
     route_results: dict[str, RouteEnvelope]
+    checkpoints: Annotated[list[dict[str, Any]], operator.add]
+    evidence_sufficiency: dict[str, Any]
+    risk_score: int
+    risk_score_components: dict[str, Any]
+    compliance: dict[str, Any]
     final_result: dict[str, Any]

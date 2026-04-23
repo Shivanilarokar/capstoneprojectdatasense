@@ -53,6 +53,7 @@ def _build_answer(result: dict[str, Any], warnings: list[str]) -> str:
     entities = result["entities"]
     matches = result["matches"]
     unmatched_entities = result["unmatched_entities"]
+    review_candidates = result.get("review_candidates", [])
 
     if matches:
         fragments = []
@@ -60,9 +61,17 @@ def _build_answer(result: dict[str, Any], warnings: list[str]) -> str:
             qualifier = f" via alias `{match['alias_used']}`" if match.get("alias_used") else ""
             program = match.get("sanctions_programs") or "unspecified program"
             fragments.append(
-                f"{match['entity_name']} matched {match['matched_name']} ({match['match_type']}{qualifier}, {program})"
+                f"{match['entity_name']} matched {match['matched_name']} ({match['match_type']}{qualifier}, {program}, score={match.get('score', 1.0):.2f})"
             )
         return "Sanctions screening found matches: " + "; ".join(fragments) + "."
+
+    if review_candidates:
+        candidate = review_candidates[0]
+        return (
+            "Sanctions screening found an ambiguous candidate that needs analyst review: "
+            f"{candidate['entity_name']} vs {candidate['matched_name']} "
+            f"({candidate['reason']}, score={candidate.get('score', 0.0):.2f})."
+        )
 
     if entities:
         return f"No sanctions matches were found for: {', '.join(entities)}."
@@ -93,6 +102,7 @@ def run_sanctions_query(
         "source_table": "source_ofac_bis_entities",
         "source_files": sorted({row.get("source_file_name", "") for row in rows if row.get("source_file_name")}),
         "matched_entity_ids": [match["source_entity_id"] for match in result["matches"]],
+        "review_entity_ids": [candidate["source_entity_id"] for candidate in result.get("review_candidates", [])],
     }
     freshness = {
         "latest_loaded_at": _latest_loaded_at(rows),
@@ -112,6 +122,7 @@ def run_sanctions_query(
         "question": question,
         "entities": result["entities"],
         "match_count": len(result["matches"]),
+        "review_count": len(result.get("review_candidates", [])),
         "unmatched_entities": result["unmatched_entities"],
     }
     _append_jsonl(settings.sanctions_audit_log, audit_payload)

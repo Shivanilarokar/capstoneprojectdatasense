@@ -14,6 +14,8 @@ DATA_ROOT = PROJECT_ROOT / "data"
 INGESTION_DATA_ROOT = DATA_ROOT / "ingestion"
 SEC_DATA_ROOT = INGESTION_DATA_ROOT / "sec"
 SEC_EDGAR_ROOT = SEC_DATA_ROOT / "edgar"
+PAGEINDEX_DATA_ROOT = DATA_ROOT / "pageindex"
+OBSERVABILITY_ROOT = DATA_ROOT / "observability"
 
 
 @dataclass(frozen=True)
@@ -36,6 +38,13 @@ class AppConfig:
     pg_database: str
     pg_sslmode: str
     azure_postgres_scope: str
+    pageindex_docs_dir: Path = PAGEINDEX_DATA_ROOT / "docs"
+    pageindex_workspace_dir: Path = PAGEINDEX_DATA_ROOT / "workspace"
+    pageindex_output_dir: Path = PAGEINDEX_DATA_ROOT / "output"
+    observability_dir: Path = OBSERVABILITY_ROOT
+    alert_event_log: Path = OBSERVABILITY_ROOT / "alerts.jsonl"
+    langsmith_project: str = ""
+    langsmith_tracing: bool = False
 
     def with_tenant(self, tenant_id: str | None) -> "AppConfig":
         """Return a copy with tenant override."""
@@ -57,6 +66,13 @@ class AppConfig:
             pg_database=self.pg_database,
             pg_sslmode=self.pg_sslmode,
             azure_postgres_scope=self.azure_postgres_scope,
+            pageindex_docs_dir=self.pageindex_docs_dir,
+            pageindex_workspace_dir=self.pageindex_workspace_dir,
+            pageindex_output_dir=self.pageindex_output_dir,
+            observability_dir=self.observability_dir,
+            alert_event_log=self.alert_event_log,
+            langsmith_project=self.langsmith_project,
+            langsmith_tracing=self.langsmith_tracing,
         )
 
 
@@ -86,4 +102,21 @@ def load_app_config(tenant_id_override: str | None = None) -> AppConfig:
             "AZURE_POSTGRES_SCOPE",
             "https://ossrdbms-aad.database.windows.net/.default",
         ).strip(),
+        pageindex_docs_dir=Path(
+            os.getenv("PAGEINDEX_DOCS_DIR", str(PAGEINDEX_DATA_ROOT / "docs"))
+        ),
+        pageindex_workspace_dir=Path(
+            os.getenv("PAGEINDEX_WORKSPACE_DIR", str(PAGEINDEX_DATA_ROOT / "workspace"))
+        ),
+        pageindex_output_dir=Path(
+            os.getenv("PAGEINDEX_OUTPUT_DIR", str(PAGEINDEX_DATA_ROOT / "output"))
+        ),
+        observability_dir=Path(
+            os.getenv("OBSERVABILITY_DIR", str(OBSERVABILITY_ROOT))
+        ),
+        alert_event_log=Path(
+            os.getenv("ALERT_EVENT_LOG", str(OBSERVABILITY_ROOT / "alerts.jsonl"))
+        ),
+        langsmith_project=os.getenv("LANGSMITH_PROJECT", "").strip(),
+        langsmith_tracing=os.getenv("LANGSMITH_TRACING", "").strip().lower() in {"1", "true", "yes", "on"},
     )

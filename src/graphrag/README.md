@@ -1,17 +1,27 @@
-# SupplyChainNexus Graph RAG (Query-Only)
+# SupplyChainNexus Graph RAG
 
-Graph RAG now runs in **query-only mode** against your existing Neo4j data.
+Graph RAG now has both:
 
-- No ingestion pipeline inside `graphrag`
-- No top-level orchestration graph inside `graphrag` (centralized in `orchestrator`)
-- Route planning is internal helper logic (LLM + fallback rule router)
-- Config is centralized at repo root: `config.py`
+- a sync pipeline from PostgreSQL + SEC extracted sections into Neo4j
+- a query pipeline for route-aware graph retrieval and synthesis
+
+Top-level orchestration still lives in `orchestrator`.
 
 For full agentic routing between PageIndex and GraphRAG, use:
 
 ```powershell
 .\.venv\Scripts\python.exe .\run_agentic_router.py --question "..."
 ```
+
+## Sync Graph State
+
+Load the ingested source tables and SEC sections into Neo4j:
+
+```powershell
+.\.venv\Scripts\python.exe .\run_graphrag_pipeline.py
+```
+
+This creates the base graph state used by `graphrag.query`.
 
 ## Build Canonical Multi-Tier Topology
 

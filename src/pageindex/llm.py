@@ -7,7 +7,7 @@ from typing import Dict
 
 from openai import OpenAI
 
-from Generation.generation import LLMConfig, chat_json as shared_chat_json, chat_text as shared_chat_text
+from generation.generation import LLMConfig, chat_json as shared_chat_json, chat_text as shared_chat_text
 
 
 def _resolve_api_key(client: OpenAI) -> str:

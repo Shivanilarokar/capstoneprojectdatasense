@@ -19,17 +19,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--docs-dir",
-        default="src/pageindex/pageindex_docs",
+        default="data/pageindex/docs",
         help="Generated markdown docs directory",
     )
     parser.add_argument(
         "--workspace",
-        default="src/pageindex/pageindex_workspace",
+        default="data/pageindex/workspace",
         help="PageIndex workspace directory",
     )
     parser.add_argument(
         "--output-dir",
-        default="src/pageindex/pageindex_rag_output",
+        default="data/pageindex/output",
         help="Output artifacts directory",
     )
     parser.add_argument("--question", default=None, help="Optional question for routed recursive retrieval")

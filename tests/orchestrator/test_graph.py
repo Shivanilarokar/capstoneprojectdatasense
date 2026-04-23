@@ -58,6 +58,71 @@ class OrchestratorGraphTests(TestCase):
 
         self.assertEqual(["nlsql"], result["completed_routes"])
         self.assertEqual(["nlsql"], result["routes_executed"])
+        self.assertTrue(result["correlation_id"])
+        self.assertTrue(result["query_id"])
+        self.assertIn("checkpoints", result)
+        self.assertIn("evidence_sufficiency", result)
+        self.assertIn("risk_score", result)
+        self.assertIn("risk_score_components", result)
+        self.assertIn("compliance", result)
+
+    def test_run_agentic_query_authz_guard_blocks_disallowed_pipeline(self) -> None:
+        result = run_agentic_query(
+            self._settings(),
+            "Is Acme Global sanctioned?",
+            options=AgenticOptions(
+                force_pipeline="sanctions",
+                allowed_pipelines=("nlsql",),
+                user_roles=("analyst",),
+            ),
+        )
+
+        self.assertEqual("denied", result["status"])
+        self.assertEqual([], result["routes_executed"])
+        self.assertEqual("authz_guard", result["compliance"]["blocked_by"])
+
+    @patch("orchestrator.agent._run_sanctions_route")
+    @patch("orchestrator.agent._run_nlsql_route")
+    def test_run_agentic_query_fullstack_adds_risk_and_guard_metadata(
+        self,
+        nlsql_mock,
+        sanctions_mock,
+    ) -> None:
+        sanctions_mock.return_value = {
+            "status": "ok",
+            "question": "q",
+            "route": "sanctions",
+            "answer": "Potential sanctions exposure for ACME.",
+            "evidence": {"matches": [{"matched_name": "ACME", "match_type": "primary_exact"}]},
+            "provenance": {"source_table": "source_ofac_bis_entities"},
+            "freshness": {"latest_loaded_at": "2026-04-23T10:00:00Z"},
+            "warnings": [],
+            "debug": {},
+        }
+        nlsql_mock.return_value = {
+            "status": "ok",
+            "question": "q",
+            "route": "nlsql",
+            "answer": "ACME appears in FDA letters.",
+            "evidence": {"rows": [{"company_name": "ACME"}]},
+            "provenance": {"sql": "SELECT ..."},
+            "freshness": {"note": "sql freshness"},
+            "warnings": [],
+            "debug": {},
+        }
+
+        result = run_agentic_query(
+            self._settings(),
+            "Is Acme Global sanctioned and does it appear in FDA warning letters?",
+            options=AgenticOptions(force_pipeline="fullstack"),
+        )
+
+        self.assertEqual("ok", result["status"])
+        self.assertGreater(result["risk_score"], 0)
+        self.assertIn("sanctions", result["risk_score_components"])
+        self.assertTrue(result["evidence_sufficiency"]["ok"])
+        self.assertTrue(result["compliance"]["checked"])
+        self.assertGreaterEqual(len(result["checkpoints"]), 3)
 
     def test_run_agentic_router_help_mentions_fullstack_and_langgraph(self) -> None:
         completed = subprocess.run(
