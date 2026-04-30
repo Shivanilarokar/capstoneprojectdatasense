@@ -1,114 +1,133 @@
-# SupplyChainNexus Competition Build
+# SupplyChainNexus Product Workspace
 
-SupplyChainNexus is a competition-focused supply-chain intelligence system with five judge-facing routes:
+SupplyChainNexus is now being consolidated into a product-style monorepo with:
 
-- `pageindex`: SEC 10-K evidence and disclosure retrieval
-- `sanctions`: deterministic OFAC/BIS screening with alias-aware matching
-- `nlsql`: exact analytics over PostgreSQL source tables
-- `graphrag`: graph-native dependency, hazard, and cascade reasoning
-- `fullstack`: multi-route orchestration for cross-source benchmark questions
+- `backend/`: FastAPI application plus the preserved route engines
+- `frontend/`: Vite + React + TypeScript SPA
+- `main.py`: top-level launcher surface for the product runtime
+- `docker-compose.yml`: local stack for frontend, backend, Postgres, and Neo4j
 
-## Central Config
+## Full Stack
 
-Runtime configuration is centralized in `config.py` and loaded from `.env`.
-
-Key settings:
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-- `GRAPH_TENANT_ID`
-- `PGHOST`
-- `PGUSER`
-- `PGDATABASE`
-- `PGPORT`
-- `PGSSLMODE`
-- `PGPASSWORD` or Azure credential access for PostgreSQL
-- `NEO4J_URI`
-- `NEO4J_USERNAME`
-- `NEO4J_PASSWORD`
-
-## Competition Entrypoints
-
-Primary orchestrator:
-
-- `run_agentic_router.py`
-  - LangGraph state machine with LangChain tool wrappers for `pageindex`, `sanctions`, `nlsql`, `graphrag`, and `ingestion`
-  - smart OpenAI-backed routing across `pageindex`, `sanctions`, `nlsql`, `graphrag`, and `fullstack`
-  - returns one answer plus route-level provenance, freshness, warnings, and raw route outputs
-
-Examples:
+Run the full stack locally:
 
 ```powershell
-.\.venv\Scripts\python.exe .\run_agentic_router.py --question "Which states had the highest storm damage?"
-.\.venv\Scripts\python.exe .\run_agentic_router.py --question "Is Acme Global sanctioned?" --force-pipeline sanctions
-.\.venv\Scripts\python.exe .\run_agentic_router.py --question "Which sanctioned entities also appear in FDA warning letters?" --force-pipeline fullstack
+cd E:\DatasenseProject\CapstoneprojectDatasense
+docker compose up --build
 ```
 
-Direct route launchers:
+If Docker Desktop is not running, start it first. The compose file is at the repo root:
 
-- `run_pageindex_pipeline.py`
-- `run_sanctions_query.py`
-- `run_nlsql_query.py`
-- `run_graphrag_query.py`
-- `run_graphrag_pipeline.py`
+- [docker-compose.yml](./docker-compose.yml)
 
-Benchmark runner:
+## Backend Runtime
 
-- `run_competition_benchmark.py`
-
-## Data Loading
-
-Structured local datasets load into PostgreSQL through `ingestion`.
-
-Example:
+Run the API:
 
 ```powershell
-.\.venv\Scripts\python.exe .\run_ingestion.py --source all --tenant-id default --init-schema
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8002
 ```
 
-Loaded source tables:
+Current product routers:
 
-- `source_ofac_bis_entities`
-- `source_noaa_storm_events`
-- `source_fda_warning_letters`
-- `source_comtrade_flows`
+- `/health`
+- `/auth/*`
+- `/google/*`
+- `/query/*`
+- `/admin/*`
+- `/tenants/*`
 
-## Benchmarking
+FastAPI docs:
 
-The competition build includes a 30-query benchmark catalog in `src/evaluation/benchmarks.py`.
+- `http://127.0.0.1:8002/docs`
+- `http://127.0.0.1:8002/openapi.json`
 
-Example:
+Test the public health endpoint:
 
 ```powershell
-.\.venv\Scripts\python.exe .\run_competition_benchmark.py --limit 5
+Invoke-WebRequest http://127.0.0.1:8002/health -UseBasicParsing | Select-Object -ExpandProperty Content
 ```
 
-Scored metrics include:
+Test an authenticated endpoint with a signed app JWT after Google sign-in:
 
-- `route_accuracy`
-- `provenance_coverage`
-- `freshness_disclosure_rate`
-- `cross_source_completion_rate`
-- `sanctions_decision_explainability`
-- `cascading_risk_answer_success`
-- `entity_match_precision`
-- `graph_traversal_completeness`
-- `geographic_accuracy`
+```powershell
+$headers = @{ Authorization = "Bearer <PASTE_ACCESS_TOKEN>" }
+Invoke-WebRequest http://127.0.0.1:8002/query/ask -Method Post -Headers $headers -ContentType "application/json" -Body '{"question":"Which states had the highest storm damage?"}' | Select-Object -ExpandProperty Content
+```
 
-## Current Scope
+Current auth notes:
 
-Implemented and runnable now:
+- The backend uses bearer auth through `HTTPBearer`.
+- Google OAuth login starts at `/google/login`.
+- After Google callback, the backend issues a signed application JWT.
+- Protected API routes accept only signed application JWTs with the configured issuer and audience.
+- `/auth/me` is the simplest endpoint to verify that a token is valid.
+- Admin access is driven by the `roles` claim in the signed application JWT.
 
-- PostgreSQL ingestion for OFAC/BIS, NOAA, FDA, and Comtrade
-- Neo4j graph sync pipeline from PostgreSQL + SEC sections into GraphRAG state
-- standalone `pageindex`, `sanctions`, `nlsql`, and `graphrag` routes
-- competition `fullstack` orchestration with checkpoint journaling, authz guard, parallel route execution, evidence validation, risk scoring, and compliance guard
-- benchmark runner, richer scoring, and ablation-style summary
-- structured observability artifacts under `data/observability`
+## LangSmith Setup
 
-Future scope after the competition:
+Enable tracing by adding these to `.env`:
 
-- full frontend product surface
-- RBAC and full auth
-- deployment and observability polish
-- broader enterprise workflow integration
+```powershell
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=your_langsmith_key
+LANGSMITH_PROJECT=supplychainnexus-dev
+```
+
+LangChain and LangGraph will pick these up automatically when the backend starts.
+
+## Frontend Runtime
+
+Run the SPA:
+
+```powershell
+npm --prefix frontend run dev
+```
+
+Build the SPA:
+
+```powershell
+npm --prefix frontend run build
+```
+
+The frontend is served at:
+
+- `http://127.0.0.1:5173`
+
+If you want the exact command again:
+
+```powershell
+cd E:\DatasenseProject\CapstoneprojectDatasense\frontend
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+## Configuration
+
+Core backend settings are loaded from `.env` through `backend/config.py`.
+
+Key areas:
+
+- OpenAI runtime
+- Postgres and Neo4j connectivity
+- Google OAuth settings
+- application JWT settings
+- control-plane and tenant admin settings
+- PageIndex and observability paths
+
+Frontend settings are provided through `VITE_*` environment variables for:
+
+- API base URL only
+
+The current frontend uses `VITE_API_BASE_URL` when present and falls back to `http://127.0.0.1:8000`.
+The current frontend uses `VITE_API_BASE_URL` when present and falls back to `http://127.0.0.1:8002`.
+
+## Product Direction
+
+The active product surface is:
+
+- orchestrator-backed query workspace
+- read-only admin dashboard
+- tenant overview
+- health check
+- external-user auth with Google OAuth and signed application JWTs
+- tenant-aware backend runtime resolution

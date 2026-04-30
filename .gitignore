@@ -5,7 +5,13 @@ build/
 dist/
 wheels/
 *.egg-info
-
+*.log
+# Local transient data
+data/tmp*/
+data/*.sqlite
+data/*.err.log
+data/*.out.log
+data/*.dev.log
 # Virtual environments
 .venv
 
@@ -16,6 +22,9 @@ wheels/
 # Local scratch and test artifacts
 tmp/
 data/observability/
+data/pageindex/docs/
+data/pageindex/output/
+data/pageindex/workspace/
 
 # Local Codex/npm tooling artifacts
 node_modules/

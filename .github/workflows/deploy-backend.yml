@@ -1,0 +1,77 @@
+name: Deploy backend to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "requirements.txt"
+      - "pyproject.toml"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run backend regression tests
+        run: |
+          pytest backend/tests/test_config.py backend/tests/test_dependencies.py backend/tests/api -q
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p backend-release
+          cp -R backend backend-release/backend
+          cp requirements.txt pyproject.toml backend-release/
+          if [ -f data/ingestion/sec/extracted_10k_sections.json ]; then
+            mkdir -p backend-release/data/ingestion/sec
+            cp data/ingestion/sec/extracted_10k_sections.json backend-release/data/ingestion/sec/
+          fi
+
+      - name: Azure login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure backend web app startup
+        run: |
+          az webapp config set \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.AZURE_BACKEND_WEBAPP_NAME }}" \
+            --startup-file "sh backend/startup.sh"
+          az webapp config appsettings set \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.AZURE_BACKEND_WEBAPP_NAME }}" \
+            --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+      - name: Deploy backend package
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_BACKEND_WEBAPP_NAME }}
+          package: backend-release
