@@ -57,9 +57,12 @@ jobs:
           fi
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
-          client-id: ${{ 1
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DA12E4DF6DA64D9A8937073CAF043969 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_595B62F5381B47338307574970A52987 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B484D8788A80419EAB25C23C11B02AB5 }}
+
       - name: Configure Azure Web App startup
         run: |
           RESOURCE_GROUP=$(az webapp list --query "[?name=='${{ env.AZURE_WEBAPP_NAME }}'].resourceGroup | [0]" -o tsv)
