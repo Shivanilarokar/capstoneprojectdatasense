@@ -1,14 +1,6 @@
 name: Deploy backend to Azure Web App
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/**"
-      - "requirements.txt"
-      - "pyproject.toml"
-      - ".github/workflows/deploy-backend.yml"
   workflow_dispatch:
 
 permissions:
